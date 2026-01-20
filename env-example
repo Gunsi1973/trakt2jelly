@@ -1,0 +1,21 @@
+# Trakt API Settings
+# Create an app at https://trakt.tv/oauth/applications
+TRAKT_CLIENT_ID=your_client_id_here
+TRAKT_CLIENT_SECRET=your_client_secret_here
+
+# Tokens generated after the first OAuth flow
+TRAKT_ACCESS_TOKEN=
+TRAKT_REFRESH_TOKEN=
+
+# Jellyfin Server Settings
+# API Key found in Settings > Advanced > API Keys
+JELLYFIN_URL=https://your-server.ch
+JELLYFIN_API_KEY=your_api_key_here
+# User ID found in the URL when viewing your profile in the web client
+JELLYFIN_USER_ID=your_user_id_here
+
+# Project Configuration
+# Comma-separated list of Trakt playlist IDs (leave empty to sync all)
+SYNC_ONLY_LISTS=
+# Sync interval in minutes (for future service implementation)
+SYNC_INTERVAL=360
