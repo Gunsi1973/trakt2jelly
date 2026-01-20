@@ -17,7 +17,6 @@ BASE_DIR = Path(__file__).parent
 LOG_FILE = BASE_DIR / "sync.log"
 STATE_FILE = BASE_DIR / "sync_state.json"
 
-# API Konfiguration
 TRAKT_CLIENT_ID = os.getenv("TRAKT_CLIENT_ID")
 TRAKT_ACCESS_TOKEN = os.getenv("TRAKT_ACCESS_TOKEN")
 JF_URL = os.getenv("JELLYFIN_URL", "").rstrip('/')
@@ -26,7 +25,6 @@ JF_USER_ID = os.getenv("JELLYFIN_USER_ID")
 
 TIMEOUT = 15 
 
-# --- Logging Setup ---
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
@@ -48,7 +46,6 @@ def get_session():
 session = get_session()
 
 # --- State Management ---
-
 def load_state():
     default_state = {"lists": {}, "id_map": {}, "selected_slugs": []}
     if STATE_FILE.exists():
@@ -66,7 +63,6 @@ def save_state(state):
         json.dump(state, f, indent=4)
 
 # --- Jellyfin Hilfsfunktionen ---
-
 def get_jellyfin_playlist_id(slug):
     url = f"{JF_URL}/Items?Recursive=true&IncludeItemTypes=Playlist&api_key={JF_API_KEY}"
     try:
@@ -78,8 +74,7 @@ def get_jellyfin_playlist_id(slug):
 
 def find_jellyfin_item(tmdb_id, title, id_map):
     tmdb_str = str(tmdb_id)
-    if tmdb_str in id_map:
-        return id_map[tmdb_str]
+    if tmdb_str in id_map: return id_map[tmdb_str]
 
     url = f"{JF_URL}/Items?Recursive=true&IncludeItemTypes=Movie&Fields=ProviderIds&api_key={JF_API_KEY}"
     try:
@@ -101,15 +96,14 @@ def clear_jellyfin_playlist(playlist_id):
             session.delete(del_url, timeout=TIMEOUT)
     except: pass
 
-# --- Hauptlogik ---
-
+# --- Sync Logik ---
 def main_sync():
     logger.info("Starte Sync-Lauf...")
     state = load_state()
     selected_slugs = state.get("selected_slugs", [])
 
     if not selected_slugs:
-        logger.warning("Keine Playlists gewaehlt. Bitte tools/select_lists.py ausfuehren.")
+        logger.warning("Keine Playlists gewaehlt. Bitte tools/select_lists.py nutzen.")
         return
 
     headers = {
@@ -138,10 +132,8 @@ def main_sync():
         try:
             items = session.get(f"https://api.trakt.tv/users/me/lists/{slug}/items", headers=headers, timeout=TIMEOUT).json()
             jf_item_ids = []
-            
-            for index, item in enumerate(items, 1):
+            for item in items:
                 if item['type'] != 'movie': continue
-                
                 media = item.get('movie')
                 tmdb_id = media.get('ids', {}).get('tmdb')
                 if tmdb_id:
@@ -152,8 +144,8 @@ def main_sync():
                 jf_item_ids = list(dict.fromkeys(jf_item_ids))
                 if jf_id: clear_jellyfin_playlist(jf_id)
                 else:
-                    create_res = session.post(f"{JF_URL}/Playlists?Name={slug}&UserId={JF_USER_ID}&api_key={JF_API_KEY}", timeout=TIMEOUT)
-                    jf_id = create_res.json()['Id']
+                    res = session.post(f"{JF_URL}/Playlists?Name={slug}&UserId={JF_USER_ID}&api_key={JF_API_KEY}", timeout=TIMEOUT)
+                    jf_id = res.json()['Id']
 
                 update_url = f"{JF_URL}/Playlists/{jf_id}/Items?Ids={','.join(jf_item_ids)}&UserId={JF_USER_ID}&api_key={JF_API_KEY}"
                 if session.post(update_url, timeout=TIMEOUT).status_code in [200, 204]:
@@ -162,24 +154,19 @@ def main_sync():
                     save_state(state)
         except Exception as e:
             logger.error(f"Fehler bei {display_name}: {e}")
-
     logger.info("Sync-Lauf beendet.")
 
 if __name__ == "__main__":
-    # Robustes Auslesen der Intervall-Variable
     raw_interval = os.getenv("SYNC_INTERVAL_MINS", "").strip("'").strip('"').strip()
     
-    if raw_interval and raw_interval.isdigit():
+    if raw_interval.isdigit():
         mins = int(raw_interval)
-        logger.info(f"INTERVALL-MODUS: Sync alle {mins} Minuten aktiv.")
+        logger.info(f"Service aktiv: Sync alle {mins} Minuten.")
         while True:
             try:
                 main_sync()
             except Exception as e:
-                logger.error(f"Unerwarteter Fehler: {e}")
-            
-            logger.info(f"Schlafe fuer {mins} Minuten...")
+                logger.error(f"Loop Fehler: {e}")
             time.sleep(mins * 60)
     else:
-        logger.info("EINZEL-MODUS: Starte einmaligen Sync.")
         main_sync()

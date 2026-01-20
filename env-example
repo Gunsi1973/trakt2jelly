@@ -18,4 +18,8 @@ JELLYFIN_USER_ID=your_user_id_here
 # Comma-separated list of Trakt playlist IDs (leave empty to sync all)
 SYNC_ONLY_LISTS=
 # Sync interval in minutes (for future service implementation)
-SYNC_INTERVAL=360
+SYNC_INTERVAL_MINS=60
+
+# Logging settings
+LOG_LEVEL=INFO
+LOG_TO_FILE=True
