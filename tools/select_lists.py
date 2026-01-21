@@ -5,7 +5,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from InquirerPy import inquirer
 
-# --- Pfade ---
+# --- Paths ---
 BASE_DIR = Path(__file__).parent.parent
 DATA_DIR = BASE_DIR / "data"
 env_path = BASE_DIR / ".env"
@@ -29,7 +29,7 @@ def fetch_trakt_lists():
         response.raise_for_status()
         return response.json()
     except Exception as e:
-        print(f"Fehler beim Laden: {e}")
+        print(f"Error fetching lists: {e}")
         return []
 
 def load_selected_from_state():
@@ -38,26 +38,24 @@ def load_selected_from_state():
             with open(state_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 return data.get("selected_slugs", [])
-        except: pass
+        except Exception: pass
     return []
 
 def save_selected_to_state(selected_slugs):
-    # Erstelle data-Ordner falls er fehlt (lokaler Betrieb)
     DATA_DIR.mkdir(exist_ok=True)
-    
     state = {"lists": {}, "id_map": {}, "selected_slugs": []}
     if state_path.exists():
         try:
             with open(state_path, 'r', encoding='utf-8') as f:
                 state = json.load(f)
-        except: pass
+        except Exception: pass
     
     state["selected_slugs"] = selected_slugs
     with open(state_path, 'w', encoding='utf-8') as f:
         json.dump(state, f, indent=4)
 
 def main():
-    print("Lade Playlists von Trakt...")
+    print("Loading playlists from Trakt...")
     lists = fetch_trakt_lists()
     if not lists: return
 
@@ -73,17 +71,17 @@ def main():
     ]
 
     selected_slugs = inquirer.checkbox(
-        message="Waehle Playlists fuer den Sync:",
+        message="Select playlists to sync:",
         choices=choices,
         pointer=">",
         enabled_symbol="[x] ",
         disabled_symbol="[ ] ",
-        instruction="(Leertaste: Toggle, Enter: Bestaetigen)"
+        instruction="(Space: Toggle, Enter: Confirm)"
     ).execute()
 
     if selected_slugs is not None:
         save_selected_to_state(selected_slugs)
-        print(f"Auswahl in {state_path} gespeichert.")
+        print(f"Selection saved to {state_path}")
 
 if __name__ == "__main__":
     main()

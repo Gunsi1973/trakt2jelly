@@ -12,19 +12,32 @@ Trakt2Jelly is a synchronization tool designed to mirror your personal Trakt.tv 
 
 ## Setup
 
-1. Create a `.env` file in the root directory:
+### 1. Environment Configuration
+Create a `.env` file in the root directory and fill in your credentials:
 
 ```env
-TRAKT_CLIENT_ID=your_trakt_client_id
-TRAKT_ACCESS_TOKEN=your_trakt_access_token
+TRAKT_CLIENT_ID=your_id
+TRAKT_CLIENT_SECRET=your_secret
 JELLYFIN_URL=[https://your-jellyfin-server.com](https://your-jellyfin-server.com)
-JELLYFIN_API_KEY=your_jellyfin_api_key
-JELLYFIN_USER_ID=your_jellyfin_user_id
+JELLYFIN_API_KEY=your_api_key
+JELLYFIN_USER_ID=your_user_id
 SYNC_INTERVAL_MINS=60
 ```
 
-2. Build and start the container:
+### 2. Trakt Authentication
+Run the authentication tool to generate your access tokens:
+```bash
+python tools/auth_trakt.py
+```
+Follow the instructions in your browser and paste the PIN.
 
+### 3. Verify Connections
+Check if the Jellyfin connection is working:
+```bash
+python tools/verify_jf.py
+```
+
+### 4. Build and Start Docker
 ```bash
 docker compose build
 docker compose up -d
@@ -32,29 +45,28 @@ docker compose up -d
 
 ## Usage
 
-### Configuration
-
-To select the lists for synchronization, run the interactive tool:
-
+### Select Playlists
+Run the interactive selection tool within the running container to choose your playlists:
 ```bash
 docker exec -it trakt2jelly python tools/select_lists.py
 ```
 
-### Logs
-
-Monitor the synchronization process:
-
+### Monitor Sync
+Check the logs to see the synchronization progress:
 ```bash
 docker logs -f trakt2jelly
 ```
 
 ## File Structure
 
-* `main.py`: Main service logic.
-* `data/`: Directory for persistent data (auto-created).
-    * `sync_state.json`: Stores sync timestamps and ID cache.
-    * `sync.log`: Detailed application logs.
-* `tools/select_lists.py`: CLI configuration utility.
+* `main.py`: Main service logic and loop.
+* `data/`: Persistent storage (mapped volume).
+    * `sync_state.json`: ID cache and sync timestamps.
+    * `sync.log`: Application logs.
+* `tools/`: Helper scripts for setup and configuration.
+    * `auth_trakt.py`: OAuth flow for Trakt.
+    * `verify_jf.py`: Connection test for Jellyfin.
+    * `select_lists.py`: Interactive playlist selector.
 
 ## Docker Compse Example
 

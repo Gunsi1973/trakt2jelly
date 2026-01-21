@@ -1,21 +1,21 @@
-# Schlankes Python 3.14 Image als Basis
+# Use slim Python 3.14 as base image
 FROM python:3.14-slim
 
-# Arbeitsverzeichnis im Container
+# Set working directory in container
 WORKDIR /app
 
-# System-Abhängigkeiten (falls nötig, hier aktuell nicht)
+# System dependencies (not needed currently)
 # RUN apt-get update && apt-get install -y --no-install-recommends gcc && rm -rf /var/lib/apt/lists/*
 
-# Zuerst nur requirements kopieren für besseres Caching
+# Copy requirements first to leverage Docker cache
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Den restlichen Code kopieren
+# Copy the remaining application code
 COPY . .
 
-# Verzeichnisse für Volumes erstellen (Zustand und Logs)
-RUN mkdir -p /app/logs /app/data
+# Create directory for persistent data (state and logs)
+RUN mkdir -p /app/data
 
-# Standard-Befehl: Führt den Sync aus
+# Default command to run the sync service
 CMD ["python", "main.py"]
