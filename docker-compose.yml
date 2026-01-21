@@ -3,10 +3,6 @@ services:
     build: .
     container_name: trakt2jelly
     env_file: .env
+    restart: unless-stopped
     volumes:
-      # Mapping für den State (damit der Cache überlebt)
-      - ./sync_state.json:/app/sync_state.json
-      # Mapping für Logs
-      - ./sync.log:/app/sync.log
-    # Falls du willst, dass der Container nach dem Sync beendet wird:
-    restart: "no"
+      - ./data:/app/data

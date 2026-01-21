@@ -14,8 +14,11 @@ env_path = Path(__file__).parent / ".env"
 load_dotenv(dotenv_path=env_path)
 
 BASE_DIR = Path(__file__).parent
-LOG_FILE = BASE_DIR / "sync.log"
-STATE_FILE = BASE_DIR / "sync_state.json"
+DATA_DIR = BASE_DIR / "data"
+DATA_DIR.mkdir(exist_ok=True) # Creating Folder if missing
+
+LOG_FILE = DATA_DIR / "sync.log"
+STATE_FILE = DATA_DIR / "sync_state.json"
 
 TRAKT_CLIENT_ID = os.getenv("TRAKT_CLIENT_ID")
 TRAKT_ACCESS_TOKEN = os.getenv("TRAKT_ACCESS_TOKEN")
@@ -48,15 +51,20 @@ session = get_session()
 # --- State Management ---
 def load_state():
     default_state = {"lists": {}, "id_map": {}, "selected_slugs": []}
-    if STATE_FILE.exists():
-        try:
-            with open(STATE_FILE, 'r', encoding='utf-8') as f:
-                content = json.load(f)
-                for key in default_state:
-                    if key not in content: content[key] = default_state[key]
-                return content
-        except: pass
-    return default_state
+    if not STATE_FILE.exists():
+        return default_state
+    
+    try:
+        with open(STATE_FILE, 'r', encoding='utf-8') as f:
+            content = json.load(f)
+            # Falls Datei existiert aber leer ist
+            if not content: return default_state
+            for key in default_state:
+                if key not in content: content[key] = default_state[key]
+            return content
+    except (json.JSONDecodeError, Exception):
+        logger.error("State-Datei korrupt. Nutze Standardwerte.")
+        return default_state
 
 def save_state(state):
     with open(STATE_FILE, 'w', encoding='utf-8') as f:

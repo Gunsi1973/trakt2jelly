@@ -7,8 +7,9 @@ from InquirerPy import inquirer
 
 # --- Pfade ---
 BASE_DIR = Path(__file__).parent.parent
+DATA_DIR = BASE_DIR / "data"
 env_path = BASE_DIR / ".env"
-state_path = BASE_DIR / "sync_state.json"
+state_path = DATA_DIR / "sync_state.json"
 
 load_dotenv(dotenv_path=env_path)
 
@@ -41,6 +42,9 @@ def load_selected_from_state():
     return []
 
 def save_selected_to_state(selected_slugs):
+    # Erstelle data-Ordner falls er fehlt (lokaler Betrieb)
+    DATA_DIR.mkdir(exist_ok=True)
+    
     state = {"lists": {}, "id_map": {}, "selected_slugs": []}
     if state_path.exists():
         try:
@@ -79,7 +83,7 @@ def main():
 
     if selected_slugs is not None:
         save_selected_to_state(selected_slugs)
-        print(f"Auswahl in {state_path.name} gespeichert.")
+        print(f"Auswahl in {state_path} gespeichert.")
 
 if __name__ == "__main__":
     main()

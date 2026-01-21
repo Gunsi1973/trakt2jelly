@@ -1,24 +1,17 @@
-# Sensible Daten
-.env
-*.env
-auth_token.json
-
-# Python Umgebung & Cache
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
 .venv/
 venv/
-ENV/
 
-# IDE spezifische Dateien
-.vscode/
-.idea/
+# App Data
+data/
+.env
 
-# OS spezifische Dateien
+# Docker
+.dockerignore
+
+# OS
 .DS_Store
 Thumbs.db
-
-#Log & State files
-sync.log
-sync_state.json
