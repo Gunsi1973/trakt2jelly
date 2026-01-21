@@ -1,4 +1,4 @@
-# Trakt2Jelly
+# Trakt2Jelly (V1.1)
 
 Trakt2Jelly is a synchronization tool designed to mirror your personal Trakt.tv lists to Jellyfin playlists. It ensures high accuracy by matching media using TMDB IDs and focuses exclusively on movies.
 
